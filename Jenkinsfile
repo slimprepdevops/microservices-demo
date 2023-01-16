@@ -4,7 +4,8 @@ pipeline {
         stage('Build') {
             steps {
                 sshagent(['kube-instance']) {
-                        sh "kubectl get all"
+                  ssh ubuntu@ec2-15-223-49-63.ca-central-1.compute.amazonaws.com      
+                  sh "kubectl get all"
                 }
                
             }
