@@ -9,7 +9,7 @@
 
 **Fourth, we will install Nginx Ingress controller and set up Ingress rules to enable external access to services within your Kubernetes cluster**
 
-**Fifth, eigure out how to integrate Istio and gRPC**
+**Fifth, figure out how to integrate Istio and gRPC**
 
 **Finally, automate the entire deployment using a CI/CD pipeline - Jenkins or Gitlab Action**
 
