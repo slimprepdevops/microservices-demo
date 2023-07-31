@@ -1,3 +1,5 @@
+**In our case, we will be using EKS**
+
 <p align="center">
 <img src="src/frontend/static/icons/Hipster_HeroLogoMaroon.svg" width="300" alt="Online Boutique" />
 </p>
