@@ -12,36 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-variable "gcp_project_id" {
+variable "aws_region" {
+  description = "AWS region for the resources."
   type        = string
-  description = "The GCP project ID to apply this config to"
+default = us-east-1
 }
 
-variable "name" {
+variable "cluster_name" {
+  description = "EKS cluster name."
   type        = string
-  description = "Name given to the new GKE cluster"
-  default     = "online-boutique"
+default     = "online-boutique"
 }
 
-variable "region" {
-  type        = string
-  description = "Region of the new GKE cluster"
-  default     = "us-central1"
-}
-
-variable "namespace" {
-  type        = string
-  description = "Kubernetes Namespace in which the Online Boutique resources are to be deployed"
-  default     = "default"
+variable "subnet_ids" {
+  description = "List of subnet IDs in which to place the EKS cluster."
+  type        = list(string)
+default = module.vpc.private_subnets
 }
 
 variable "filepath_manifest" {
+  description = "Path to the Kubernetes manifest file to apply."
   type        = string
-  description = "Path to Online Boutique's Kubernetes resources, written using Kustomize"
-  default     = "../kustomize/"
+default     = "../kustomize/"
 }
 
-variable "memorystore" {
-  type        = bool
-  description = "If true, Online Boutique's in-cluster Redis cache will be replaced with a Google Cloud Memorystore Redis cache"
+variable "namespace" {
+  description = "Kubernetes namespace to apply the manifest to."
+  type        = string
+default     = "default"
 }
