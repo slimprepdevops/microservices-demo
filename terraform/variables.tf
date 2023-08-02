@@ -15,7 +15,7 @@
 variable "aws_region" {
   description = "AWS region for the resources."
   type        = string
-default = us-east-1
+  default     = "us-east-1"
 }
 
 variable "cluster_name" {
@@ -27,13 +27,12 @@ default     = "online-boutique"
 variable "subnet_ids" {
   description = "List of subnet IDs in which to place the EKS cluster."
   type        = list(string)
-default = module.vpc.private_subnets
 }
 
 variable "filepath_manifest" {
   description = "Path to the Kubernetes manifest file to apply."
   type        = string
-default     = "../kustomize/"
+default     = "../kustomize/base/"
 }
 
 variable "namespace" {

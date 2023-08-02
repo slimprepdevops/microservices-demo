@@ -1,8 +1,4 @@
 # Define the required providers
-provider "aws" {
-  region = var.aws_region
-  
-}
 
 # Create an AWS EKS cluster
 resource "aws_eks_cluster" "my_cluster" {
@@ -36,6 +32,7 @@ resource "aws_iam_role" "eks_cluster" {
   })
 }
 
+
 # Attach the required IAM policy to the EKS cluster role
 resource "aws_iam_role_policy_attachment" "eks_cluster" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
@@ -51,45 +48,34 @@ provider "kubernetes" {
   host                   = data.aws_eks_cluster.my_cluster.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.my_cluster.certificate_authority.0.data)
   token                  = data.aws_eks_cluster_auth.my_cluster.token
-  load_config_file       = false
 }
 
 data "aws_eks_cluster_auth" "my_cluster" {
   name = aws_eks_cluster.my_cluster.name
 }
 
-# Apply Kubernetes manifest configurations
-resource "kubernetes_manifest" "apply_deployment" {
-  config_path = var.filepath_manifest
-}
-
-# Wait for all Pods to be ready before finishing
-resource "kubernetes_pod" "wait_conditions" {
-  metadata {
-    namespace = var.namespace
-    name      = "wait-pod"
-  }
-
-  spec {
-    container {
-      image = "busybox"
-      name  = "wait-container"
-
-      command = [
-        "sh",
-        "-c",
-        "while true; do sleep 30; done;"
-      ]
-    }
-  }
-
+/*
+# Apply YAML Kubernetes-manifest configurations using kubectl
+resource "null_resource" "apply_deployment" {
   provisioner "local-exec" {
     interpreter = ["bash", "-exc"]
-    command     = "kubectl wait --for=condition=ready pod/wait-pod -n ${var.namespace} --timeout=-1s 2> /dev/null"
+    command     = "kubectl apply -f ${var.filepath_manifest}"
   }
 
   depends_on = [
-    kubernetes_manifest.apply_deployment,
+    provider.kubectl,
   ]
 }
 
+# Wait condition for all Pods to be ready before finishing
+resource "null_resource" "wait_conditions" {
+  provisioner "local-exec" {
+    interpreter = ["bash", "-exc"]
+    command     = "kubectl wait --for=condition=ready pods --all -n ${var.namespace} --timeout=-1s 2> /dev/null"
+  }
+
+  depends_on = [
+    resource.null_resource.apply_deployment,
+  ]
+}
+*/
