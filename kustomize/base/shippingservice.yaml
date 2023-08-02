@@ -40,7 +40,7 @@ spec:
               - all
           privileged: false
           readOnlyRootFilesystem: true
-        image: gcr.io/google-samples/microservices-demo/shippingservice:v0.5.0
+        image: 240763333586.dkr.ecr.us-east-1.amazonaws.com/shippingservice:latest
         ports:
         - containerPort: 50051
         env:

@@ -41,7 +41,7 @@ spec:
               - all
           privileged: false
           readOnlyRootFilesystem: true
-        image: gcr.io/google-samples/microservices-demo/emailservice:v0.5.0
+        image: 240763333586.dkr.ecr.us-east-1.amazonaws.com/emailservice:latest
         ports:
         - containerPort: 8080
         env:
