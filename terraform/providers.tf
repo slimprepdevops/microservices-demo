@@ -14,14 +14,34 @@
 
 terraform {
   required_providers {
-    google = {
-      source  = "hashicorp/google"
-      version = "4.47.0"
+     aws = {
+      source = "hashicorp/aws"
+      version = "5.10.0"
     }
+
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = ">= 1.14.0"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = ">= 2.6.0"
+    }
+
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0.4"
+    }
+
+    cloudinit = {
+      source  = "hashicorp/cloudinit"
+      version = "~> 2.3.2"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.5.1"
+    }
+   
   }
 }
 
-provider "google" {
-  project = var.gcp_project_id
-  region  = var.region
-}

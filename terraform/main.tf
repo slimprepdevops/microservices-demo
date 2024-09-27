@@ -1,84 +1,69 @@
-# Copyright 2022 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Define the required providers
 
-# Definition of local variables
-locals {
-  base_apis = [
-    "container.googleapis.com",
-    "monitoring.googleapis.com",
-    "cloudtrace.googleapis.com",
-    "cloudprofiler.googleapis.com"
-  ]
-  memorystore_apis = ["redis.googleapis.com"]
-  
-  # Variables cluster_list and cluster_name are used for an implicit dependency
-  # between module "gcloud" and resource "google_container_cluster" 
-  cluster_id_parts = split("/", google_container_cluster.my_cluster.id)
-  cluster_name = element(local.cluster_id_parts, length(local.cluster_id_parts) - 1)
-}
+# Create an AWS EKS cluster
+resource "aws_eks_cluster" "my_cluster" {
+  name     = var.cluster_name
+  role_arn = aws_iam_role.eks_cluster.arn
 
-# Enable Google Cloud APIs
-module "enable_google_apis" {
-  source  = "terraform-google-modules/project-factory/google//modules/project_services"
-  version = "~> 14.0"
-
-  project_id                  = var.gcp_project_id
-  disable_services_on_destroy = false
-
-  # activate_apis is the set of base_apis and the APIs required by user-configured deployment options
-  activate_apis = concat(local.base_apis, var.memorystore ? local.memorystore_apis : [])
-}
-
-# Create GKE cluster
-resource "google_container_cluster" "my_cluster" {
-  name     = var.name
-  location = var.region
-
-  # Enabling autopilot for this cluster
-  enable_autopilot = true
-
-  # Setting an empty ip_allocation_policy to allow autopilot cluster to spin up correctly
-  ip_allocation_policy {
+  vpc_config {
+    subnet_ids = var.subnet_ids
   }
 
   depends_on = [
-    module.enable_google_apis
+    aws_iam_role_policy_attachment.eks_cluster,
   ]
 }
 
-# Get credentials for cluster
-module "gcloud" {
-  source  = "terraform-google-modules/gcloud/google"
-  version = "~> 3.0"
+# Define an IAM role for the EKS cluster
+resource "aws_iam_role" "eks_cluster" {
+  name = "eks-cluster-${var.cluster_name}"
 
-  platform              = "linux"
-  additional_components = ["kubectl", "beta"]
-
-  create_cmd_entrypoint = "gcloud"
-  # Use local variable cluster_name for an implicit dependency on resource "google_container_cluster" 
-  create_cmd_body = "container clusters get-credentials ${local.cluster_name} --zone=${var.region}"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "eks.amazonaws.com"
+        }
+      }
+    ]
+  })
 }
 
-# Apply YAML kubernetes-manifest configurations
+
+# Attach the required IAM policy to the EKS cluster role
+resource "aws_iam_role_policy_attachment" "eks_cluster" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  role       = aws_iam_role.eks_cluster.name
+}
+
+# Provision the EKS cluster's Kubernetes config locally
+data "aws_eks_cluster" "my_cluster" {
+  name = aws_eks_cluster.my_cluster.name
+}
+
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.my_cluster.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.my_cluster.certificate_authority.0.data)
+  token                  = data.aws_eks_cluster_auth.my_cluster.token
+}
+
+data "aws_eks_cluster_auth" "my_cluster" {
+  name = aws_eks_cluster.my_cluster.name
+}
+
+/*
+# Apply YAML Kubernetes-manifest configurations using kubectl
 resource "null_resource" "apply_deployment" {
   provisioner "local-exec" {
     interpreter = ["bash", "-exc"]
-    command     = "kubectl apply -k ${var.filepath_manifest}"
+    command     = "kubectl apply -f ${var.filepath_manifest}"
   }
 
   depends_on = [
-    module.gcloud
+    provider.kubectl,
   ]
 }
 
@@ -90,6 +75,7 @@ resource "null_resource" "wait_conditions" {
   }
 
   depends_on = [
-    resource.null_resource.apply_deployment
+    resource.null_resource.apply_deployment,
   ]
 }
+*/

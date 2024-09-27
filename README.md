@@ -1,3 +1,18 @@
+**STEPS FOR BOOTCAMP PROJECT**
+**NB. In our case, we will be using EKS**
+
+**First, We need to containerize our microservices and push them into a publicly accessible ECR** 
+
+**Second, we will set up an EKS cluster with Terraform module**
+
+**Third, we will install Kubectl, configure Helm and update the Helm charts to deploy applications onto the Kubernetes cluster**
+
+**Fourth, we will install Nginx Ingress controller and set up Ingress rules to enable external access to services within your Kubernetes cluster**
+
+**Fifth, figure out how to integrate Istio and gRPC**
+
+**Finally, automate the entire deployment using a CI/CD pipeline - Jenkins or Gitlab Action**
+
 <p align="center">
 <img src="src/frontend/static/icons/Hipster_HeroLogoMaroon.svg" width="300" alt="Online Boutique" />
 </p>
